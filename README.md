@@ -44,7 +44,7 @@ A Firebase account for Authentication and Firestore.
 
 1. Clone the repository
 
-git clone [https://github.com/yourusername/job-assistant-pro.git](https://github.com/yourusername/job-assistant-pro.git)
+git clone [https://github.com/xyzayush0/job-assistant-pro.git](https://github.com/xyzayush0/job-assistant-pro.git)
 cd job-assistant-pro
 
 
