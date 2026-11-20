@@ -1,17 +1,4 @@
-export async function streamChat(key, messages, onText) {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + key},
-        body: JSON.stringify({model: 'openai/gpt-oss-120b', messages, stream: true,
-            reasoning_effort: 'low', max_completion_tokens: 2048})
-    });
-    if (!response.ok) {
-        const error = new Error(response.status === 429
-            ? 'Groq rate limit reached. Wait a moment or try a shorter prompt.'
-            : 'Groq request failed (HTTP ' + response.status + '). Check your key and model access.');
-        error.status = response.status;
-        throw error;
-    }
+export async function streamChat(response, onText) {
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
     let buffer = '', text = '';
     try {

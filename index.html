@@ -280,14 +280,8 @@
     <!-- 
       JavaScript Section 
     -->
-    <dialog id="key-dialog" style="margin:auto;padding:1.5rem;border-radius:12px;max-width:28rem;color:#171717">
-      <form method="dialog"><label for="session-key"><strong>Connect Gemini</strong></label>
-      <p style="margin:1rem 0">Enter your Gemini API key to use the AI tools. It stays in memory until you reload this tab and is sent to Google for your requests.</p>
-      <input aria-label="Gemini API key" id="session-key" type="password" autocomplete="off" style="width:100%;border:1px solid #888;padding:.5rem">
-      <div style="display:flex;justify-content:flex-end;gap:1rem;margin-top:1rem"><button value="cancel">Cancel</button><button value="save">Connect</button></div></form>
-    </dialog>
     <script type="module">
-        import {streamChat} from "./groq.mjs";
+        import {streamChat} from "./shared-stream.mjs";
         // --- 1. CONFIGURATION ---
 
         // Gemini credentials are held by the local Python server.
@@ -557,114 +551,34 @@
 
         // --- 7. GENERIC GEMINI API CALLER ---
 
-        const MAX_RETRIES = 3;
-        const INITIAL_BACKOFF_MS = 1000;
-
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-        const keys = new Map();
-        let pendingKey;
-        async function getKey(provider) {
-            if (keys.has(provider)) return keys.get(provider);
-            if (pendingKey) throw new Error('Finish the open key prompt and try again.');
-            if (!pendingKey) {
-                const dialog = document.getElementById('key-dialog');
-                const input = document.getElementById('session-key');
-                dialog.querySelector('strong').textContent = 'Connect ' + provider;
-                dialog.querySelector('p').textContent = provider === 'Groq'
-                    ? 'Use your Groq Free Plan API key for writing and chat. Your input is sent to Groq. The key stays in this tab until reload.'
-                    : 'Use your Gemini API key for company research with Google Search. Your input is sent to Google. The key stays in this tab until reload.';
-                input.setAttribute('aria-label', provider + ' API key');
-                pendingKey = new Promise((resolve, reject) => {
-                    dialog.addEventListener('close', () => {
-                        const sessionKey = dialog.returnValue === 'save' ? input.value.trim() : '';
-                        input.value = '';
-                        pendingKey = null;
-                        if (sessionKey) { keys.set(provider, sessionKey); resolve(sessionKey); }
-                        else reject(new Error(provider + ' API key required.'));
-                    }, {once: true});
-                });
-                dialog.returnValue = '';
-                dialog.showModal();
-                input.focus();
-            }
-            return pendingKey;
-        }
-        async function generateWithGroq(messages, onText) {
-            const key = await getKey('Groq');
-            try { return await streamChat(key, messages, onText); }
-            catch (error) {
-                if ([401, 403].includes(error.status)) keys.delete('Groq');
-                throw error;
-            }
-        }
-        async function fetchWithRetry(url, options) {
-            let delay = INITIAL_BACKOFF_MS;
-            for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-                const key = await getKey('Gemini');
-                const response = await fetch(url, {...options, headers: {...options.headers, 'x-goog-api-key': key}});
-                if (response.ok) return response;
-                const body = await response.json().catch(() => ({}));
-                if ([400, 401, 403].includes(response.status)) keys.delete('Gemini');
-                const message = body.error?.message || `HTTP error ${response.status}`;
-                if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES && !message.includes('key is missing')) {
-                    await sleep(delay);
-                    delay *= 2;
-                    continue;
-                }
-                throw new Error(message);
-            }
-        }
-
-        /**
-         * A generic function to call the Gemini API for tools.
-         * @param {string} userPrompt - The user's direct input.
-         * @param {string} systemPrompt - The specific persona/instructions for the tool.
-         * @param {boolean} withGrounding - Whether to enable Google Search grounding.
-         * @returns {Promise<string>} - The text response from the model.
-         */
-        async function callToolAPI(userPrompt, systemPrompt, withGrounding = false) {
-            
-            const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
-            
-            const payload = {
-                contents: [
-                    { role: "user", parts: [{ text: userPrompt }] }
-                ],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                }
-            };
-            
-            if (withGrounding) {
-                payload.tools = [{ "google_search": {} }];
-            }
-
-            const fetchOptions = {
+        async function sharedRequest(messages, research = false) {
+            const user = auth.currentUser;
+            if (!user) throw new Error('Please sign in again.');
+            const token = await user.getIdToken();
+            const response = await fetch('https://job-assistant-api-xyzayush.nurturinglime4.chatgpt.site/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            };
-            const response = await fetchWithRetry(apiUrl, fetchOptions);
-
-            const result = await response.json();
-            
-            if (!result.candidates || !result.candidates[0].content) {
-                 // Check for safety ratings
-                if (result.promptFeedback?.blockReason) {
-                    throw new Error(`Request blocked for: ${result.promptFeedback.blockReason}. Adjust your input and try again.`);
-                }
-                 throw new Error("Invalid response structure from API.");
+                headers: {Authorization: 'Bearer ' + token, 'Content-Type': 'application/json'},
+                body: JSON.stringify({messages, research})
+            });
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.error?.message || 'The shared AI service is unavailable.');
             }
-
-            const responseText = result.candidates[0].content.parts
-                .filter(part => part.text)
-                .map(part => part.text)
-                .join(" ");
-
-            return responseText;
+            return response;
         }
-        
+
+        async function generateWithGroq(messages, onText) {
+            return streamChat(await sharedRequest(messages), onText);
+        }
+
+        async function callToolAPI(userPrompt, systemPrompt) {
+            const response = await sharedRequest([{role:'system', content:systemPrompt}, {role:'user', content:userPrompt}], true);
+            const result = await response.json();
+            const answer = result.choices?.[0]?.message?.content;
+            if (!answer) throw new Error('No company research was returned.');
+            return answer;
+        }
+
         /** Simple Markdown to HTML for results */
         function formatResult(text) {
              return text
@@ -818,7 +732,7 @@
 
             try {
                 // Note: withGrounding = true
-                const response = await callToolAPI(userPrompt, systemPrompt, true);
+                const response = await callToolAPI(userPrompt, systemPrompt);
                 insightsResults.innerHTML = formatResult(response);
             } catch (error) {
                 insightsResults.textContent = error.message; // UPDATED
