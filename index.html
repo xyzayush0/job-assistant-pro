@@ -101,6 +101,8 @@
                     <!-- UPDATED: Gradient Button -->
                     <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Login</button>
                 </div>
+                <button type="button" id="forgot-password" class="mt-4 text-orange-400 underline">Forgot password?</button>
+                <p id="reset-status" role="status" aria-live="polite" class="mt-2 text-sm"></p>
             </form>
 
             <!-- Signup Form (Hidden by default) -->
@@ -376,6 +378,7 @@
             getAuth, 
             onAuthStateChanged,
             signInWithEmailAndPassword,
+            sendPasswordResetEmail,
             createUserWithEmailAndPassword,
             signInWithCustomToken,
             signInAnonymously,
@@ -492,6 +495,36 @@
                 authError.textContent = '';
             });
         }
+
+        const resetButton = document.getElementById('forgot-password');
+        const resetStatus = document.getElementById('reset-status');
+        const loginEmail = document.getElementById('login-email');
+        loginEmail.addEventListener('input', () => { resetStatus.textContent = ''; });
+        resetButton.addEventListener('click', async () => {
+            authError.textContent = '';
+            resetStatus.textContent = '';
+            loginEmail.value = loginEmail.value.trim();
+            if (!loginEmail.reportValidity()) {
+                loginEmail.focus();
+                return;
+            }
+            resetButton.disabled = true;
+            const email = loginEmail.value;
+            const confirmation = 'If this email has an account, check your inbox or spam folder for a password reset link.';
+            resetStatus.textContent = 'Requesting a reset link…';
+            try {
+                await sendPasswordResetEmail(auth, email);
+                if (email === loginEmail.value) resetStatus.textContent = confirmation;
+            } catch (error) {
+                if (email === loginEmail.value) {
+                    resetStatus.textContent = error.code === 'auth/user-not-found' ? confirmation :
+                        error.code === 'auth/too-many-requests' ? 'Too many requests. Please try again later.' :
+                        'Could not request a reset link. Check your connection and try again.';
+                }
+            } finally {
+                resetButton.disabled = false;
+            }
+        });
 
         /** Handles login form submission */
         document.getElementById('login-form').addEventListener('submit', async (e) => {
