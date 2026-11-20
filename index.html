@@ -67,6 +67,7 @@
             padding-right: 2.5rem; /* Make space for arrow */
         }
     </style>
+<link rel="stylesheet" href="./workspace.css">
 </head>
 <body class="bg-neutral-900 text-white font-sans"> <!-- UPDATED -->
 
@@ -81,25 +82,19 @@
 
     <!-- 2. Auth View (Login/Signup) -->
     <div id="auth-view" class="app-view flex items-center justify-center min-h-screen">
-        <div class="bg-neutral-800 w-full max-w-md p-8 rounded-2xl shadow-2xl"> <!-- UPDATED -->
-            <h2 class="text-3xl font-bold text-center mb-8">Job Assistant Pro</h2>
-            
-            <!-- Login/Signup Tabs -->
-            <div class="flex mb-4 border-b border-neutral-700"> <!-- UPDATED -->
-                <button id="tab-login" class="flex-1 py-2 font-semibold text-orange-400 border-b-2 border-orange-400">Login</button> <!-- UPDATED -->
-                <button id="tab-signup" class="flex-1 py-2 font-semibold text-neutral-500">Sign Up</button> <!-- UPDATED -->
-            </div>
-
+        <div class="auth-layout"><section class="intro"><span class="brand"><i aria-hidden="true"></i>Job Assistant Pro</span><div><h1>Your job search,<br> <em>in one place.</em></h1><p>Write applications, prepare for interviews and keep track of every role you apply for.</p></div><div class="files" aria-hidden="true"><b></b><b></b><b><span>Application file</span></b></div></section>
+            <section class="auth-panel"><h2 id="auth-title">Welcome back.</h2>
+            <div class="auth-tabs"><button id="tab-login" aria-pressed="true">Sign in</button><button id="tab-signup" aria-pressed="false">Create account</button></div>
             <!-- Auth Error Message -->
             <div id="auth-error" class="text-rose-400 text-center mb-4 h-6"></div> <!-- UPDATED -->
 
             <!-- Login Form -->
             <form id="login-form">
                 <div class="space-y-4">
-                    <input type="email" id="login-email" placeholder="Email" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
-                    <input type="password" id="login-password" placeholder="Password" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                    <label for="login-email">Email address</label><input type="email" id="login-email" placeholder="Email" autocomplete="email" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                    <label for="login-password">Password</label><input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
                     <!-- UPDATED: Gradient Button -->
-                    <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Login</button>
+                    <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Sign in</button>
                 </div>
                 <button type="button" id="forgot-password" class="mt-4 text-orange-400 underline">Forgot password?</button>
                 <p id="reset-status" role="status" aria-live="polite" class="mt-2 text-sm"></p>
@@ -108,12 +103,12 @@
             <!-- Signup Form (Hidden by default) -->
             <form id="signup-form" class="hidden">
                 <div class="space-y-4">
-                    <input type="email" id="signup-email" placeholder="Email" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
-                    <input type="password" id="signup-password" placeholder="Password (min. 6 chars)" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                    <label for="signup-email">Email address</label><input type="email" id="signup-email" placeholder="Email" autocomplete="email" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                    <label for="signup-password">Password (at least 6 characters)</label><input type="password" id="signup-password" placeholder="Password (min. 6 chars)" autocomplete="new-password" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
                     <!-- UPDATED: Gradient Button -->
                     <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-3 rounded-lg transition-all">Create Account</button>
                 </div>
-            </form>
+            </form></section>
         </div>
     </div>
 
@@ -123,10 +118,10 @@
         
         <!-- NEW: App Header -->
         <header class="w-full bg-neutral-800 p-4 h-20 shadow-lg flex justify-between items-center z-10"> <!-- UPDATED -->
-            <h1 class="text-3xl font-bold text-white">Job Assistant Pro</h1>
+            <span class="brand"><i aria-hidden="true"></i>Job Assistant Pro</span>
             <div class="flex items-center space-x-4">
                 <div id="user-info" class="text-neutral-400 text-sm break-all hidden sm:block"></div> <!-- UPDATED -->
-                <button id="logout-button" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Logout</button> <!-- UPDATED -->
+                <button id="logout-button" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Sign out</button> <!-- UPDATED -->
             </div>
         </header>
 
@@ -137,66 +132,17 @@
 
             <!-- UPDATED: Renamed 'welcome-view' to 'dashboard-view' and added tool cards -->
             <div id="dashboard-view" class="tool-view">
-                <h1 class="text-4xl font-bold mb-6">Welcome!</h1>
-                <p class="text-lg text-neutral-300 mb-8">Select a tool to get started.</p> <!-- UPDATED -->
-                
-                <!-- NEW: Tool Grid -->
-                <!-- UPDATED: Grid layout adjustments -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- CV Writer Card -->
-                    <button data-tool="cv-writer" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1"> <!-- UPDATED -->
-                        <h2 class="text-2xl font-bold mb-2 text-white">CV Writer</h2>
-                        <p class="text-neutral-400">Generate impactful resume bullet points tailored to a job description.</p> <!-- UPDATED -->
-                    </button>
-                    
-                    <!-- Cover Letter Card -->
-                    <button data-tool="cover-letter" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1"> <!-- UPDATED -->
-                        <h2 class="text-2xl font-bold mb-2 text-white">Cover Letter</h2>
-                        <p class="text-neutral-400">Create a professional cover letter based on your resume and a job description.</p> <!-- UPDATED -->
-                    </button>
-
-                    <!-- Job Tracker Card -->
-                     <button data-tool="job-tracker" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1">
-                        <h2 class="text-2xl font-bold mb-2 text-white">Job Tracker</h2>
-                        <p class="text-neutral-400">Keep track of all your job applications in one place.</p>
-                    </button>
-                    
-                    <!-- NEW: LinkedIn Optimizer Card -->
-                    <button data-tool="linkedin-optimizer" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1">
-                        <h2 class="text-2xl font-bold mb-2 text-white">LinkedIn Optimizer</h2>
-                        <p class="text-neutral-400">Refine your LinkedIn 'About' section for a specific job target.</p>
-                    </button>
-
-                    <!-- Company Insights Card -->
-                    <button data-tool="insights" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1"> <!-- UPDATED -->
-                        <h2 class="text-2xl font-bold mb-2 text-white">Company Insights</h2>
-                        <p class="text-neutral-400">Get the latest news and hidden details about a company before your interview.</p> <!-- UPDATED -->
-                    </button>
-
-                    <!-- Interview Tips Card -->
-                    <button data-tool="tips" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1"> <!-- UPDATED -->
-                        <h2 class="text-2xl font-bold mb-2 text-white">Interview Tips</h2>
-                        <p class="text-neutral-400">Get AI-powered interview tips and potential questions for any job role.</p> <!-- UPDATED -->
-                    </button>
-
-                    <!-- AI Chatbot Card -->
-                    <button data-tool="chatbot" class="nav-button bg-neutral-800 p-6 rounded-xl shadow-lg text-left hover:bg-neutral-700 hover:ring-2 hover:ring-orange-500 transition-all transform hover:-translate-y-1"> <!-- UPDATED -->
-                        <h2 class="text-2xl font-bold mb-2 text-white">AI Chatbot</h2>
-                        <p class="text-neutral-400">Have a general question? Ask the AI job assistant anything.</p> <!-- UPDATED -->
-                    </button>
-                </div>
-            </div>
-
+                <h1>Your workspace</h1><button class="nav-button tracker-link" data-tool="job-tracker"><span><strong>Application tracker</strong><small>Record a role or update its status.</small></span><span aria-hidden="true">→</span></button><div class="groups"><section><h2>Application materials</h2><button class="nav-button tool-row" data-tool="cv-writer"><strong>CV writer</strong><small>Tailor your experience to a job description.</small></button><button class="nav-button tool-row" data-tool="cover-letter"><strong>Cover letter</strong><small>Draft a letter for a specific role.</small></button><button class="nav-button tool-row" data-tool="linkedin-optimizer"><strong>LinkedIn profile</strong><small>Revise your About section.</small></button></section><section><h2>Interview preparation</h2><button class="nav-button tool-row" data-tool="insights"><strong>Company research</strong><small>Look up recent news about an employer.</small></button><button class="nav-button tool-row" data-tool="tips"><strong>Interview questions</strong><small>Practice questions for your target role.</small></button><button class="nav-button tool-row" data-tool="chatbot"><strong>Career chat</strong><small>Talk through a career question.</small></button></section></div></div>
             <!-- CV Writer View -->
             <div id="cv-writer-view" class="tool-view">
                 <!-- NEW: Back Button -->
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button> <!-- UPDATED -->
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button> <!-- UPDATED -->
                 <h1 class="text-3xl font-bold mb-6">CV Writer</h1>
                 <div class="bg-neutral-800 p-6 rounded-xl shadow-lg"> <!-- UPDATED -->
                     <form id="cv-form">
                         <div class="space-y-4">
-                            <textarea id="cv-job-desc" placeholder="Paste the job description here..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea> <!-- UPDATED -->
-                            <textarea id="cv-user-info" placeholder="Paste your current resume or write a few paragraphs about your experience..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea> <!-- UPDATED -->
+                            <div class="field"><label for="cv-job-desc">Job description</label><textarea id="cv-job-desc" placeholder="Paste the job description here..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div> <!-- UPDATED -->
+                            <div class="field"><label for="cv-user-info">Your experience</label><textarea id="cv-user-info" placeholder="Paste your current resume or write a few paragraphs about your experience..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div> <!-- UPDATED -->
                             <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Generate CV Points</button> <!-- UPDATED -->
                         </div>
                     </form>
@@ -208,13 +154,13 @@
             <!-- Cover Letter View -->
             <div id="cover-letter-view" class="tool-view">
                 <!-- NEW: Back Button -->
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button> <!-- UPDATED -->
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button> <!-- UPDATED -->
                 <h1 class="text-3xl font-bold mb-6">Cover Letter Generator</h1>
                 <div class="bg-neutral-800 p-6 rounded-xl shadow-lg"> <!-- UPDATED -->
                     <form id="cover-letter-form">
                         <div class="space-y-4">
-                            <textarea id="cl-job-desc" placeholder="Paste the job description here..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea> <!-- UPDATED -->
-                            <textarea id="cl-user-info" placeholder="Paste your current resume or write a few paragraphs about your experience..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea> <!-- UPDATED -->
+                            <div class="field"><label for="cl-job-desc">Job description</label><textarea id="cl-job-desc" placeholder="Paste the job description here..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div> <!-- UPDATED -->
+                            <div class="field"><label for="cl-user-info">Your experience</label><textarea id="cl-user-info" placeholder="Paste your current resume or write a few paragraphs about your experience..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div> <!-- UPDATED -->
                             <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Generate Cover Letter</button> <!-- UPDATED -->
                         </div>
                     </form>
@@ -225,7 +171,7 @@
 
             <!-- Job Tracker View -->
             <div id="job-tracker-view" class="tool-view">
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button>
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button>
                 <h1 class="text-3xl font-bold mb-6">Job Application Tracker</h1>
                 
                 <!-- Add Job Form -->
@@ -233,17 +179,17 @@
                     <h2 class="text-2xl font-semibold mb-4">Add New Application</h2>
                     <form id="job-tracker-form">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                            <input type="text" id="jt-company" placeholder="Company Name" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                            <input type="text" id="jt-title" placeholder="Job Title" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                             <input type="date" id="jt-date" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-neutral-400" title="Date Applied">
-                             <select id="jt-status" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-neutral-400">
+                            <div class="field"><label for="jt-company">Company</label><input type="text" id="jt-company" placeholder="Company Name" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></div>
+                            <div class="field"><label for="jt-title">Role</label><input type="text" id="jt-title" placeholder="Job Title" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></div>
+                             <div class="field"><label for="jt-date">Date applied</label><input type="date" id="jt-date" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-neutral-400" title="Date Applied"></div>
+                             <div class="field"><label for="jt-status">Application status</label><select id="jt-status" required class="w-full px-4 py-3 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-neutral-400">
                                 <option value="Applied">Applied</option>
                                 <option value="Screening">Screening</option>
                                 <option value="Interviewing">Interviewing</option>
                                 <option value="Offer">Offer</option>
                                 <option value="Rejected">Rejected</option>
                                 <option value="Withdrawn">Withdrawn</option>
-                             </select>
+                             </select></div>
                         </div>
                         <button type="submit" class="w-full md:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Add Job</button>
                     </form>
@@ -260,13 +206,13 @@
 
              <!-- NEW: LinkedIn Optimizer View -->
              <div id="linkedin-optimizer-view" class="tool-view">
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button>
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button>
                 <h1 class="text-3xl font-bold mb-6">LinkedIn Profile Optimizer</h1>
                 <div class="bg-neutral-800 p-6 rounded-xl shadow-lg">
                     <form id="linkedin-form">
                         <div class="space-y-4">
-                            <textarea id="li-about" placeholder="Paste your current LinkedIn 'About' section here..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
-                            <textarea id="li-target-job" placeholder="Paste a job description you are targeting..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                            <div class="field"><label for="li-about">Current About section</label><textarea id="li-about" placeholder="Paste your current LinkedIn 'About' section here..." rows="10" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div>
+                            <div class="field"><label for="li-target-job">Target job description</label><textarea id="li-target-job" placeholder="Paste a job description you are targeting..." rows="5" class="w-full p-4 bg-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea></div>
                             <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 rounded-lg transition-all">Optimize Profile</button>
                         </div>
                     </form>
@@ -279,11 +225,11 @@
             <!-- Company Insights View -->
             <div id="insights-view" class="tool-view">
                 <!-- NEW: Back Button -->
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button> <!-- UPDATED -->
-                <h1 class="text-3xl font-bold mb-6">Company Insights (with Google Search)</h1>
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button> <!-- UPDATED -->
+                <h1 class="text-3xl font-bold mb-6">Company research</h1>
                 <div class="bg-neutral-800 p-6 rounded-xl shadow-lg"> <!-- UPDATED -->
                     <form id="insights-form" class="flex space-x-3">
-                        <input type="text" id="insights-company" placeholder="Enter a company name (e.g., 'Google', 'Tesla')" class="flex-1 bg-neutral-700 border border-neutral-600 rounded-lg px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                        <div class="field"><label for="insights-company">Company name</label><input type="text" id="insights-company" placeholder="Enter a company name (e.g., 'Google', 'Tesla')" class="flex-1 bg-neutral-700 border border-neutral-600 rounded-lg px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500"></div> <!-- UPDATED -->
                         <button type="submit" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold px-6 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors">Search</button> <!-- UPDATED -->
                     </form>
                     <div id="insights-loading" class="text-neutral-400 mt-6 hidden">Searching for insights...</div> <!-- UPDATED -->
@@ -294,11 +240,11 @@
             <!-- Interview Tips View -->
             <div id="tips-view" class="tool-view">
                 <!-- NEW: Back Button -->
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button> <!-- UPDATED -->
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button> <!-- UPDATED -->
                 <h1 class="text-3xl font-bold mb-6">Interview Tips</h1>
                 <div class="bg-neutral-800 p-6 rounded-xl shadow-lg"> <!-- UPDATED -->
                     <form id="tips-form" class="flex space-x-3">
-                        <input type="text" id="tips-role" placeholder="Enter a job role (e.g., 'Software Engineer', 'Marketing Manager')" class="flex-1 bg-neutral-700 border border-neutral-600 rounded-lg px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500"> <!-- UPDATED -->
+                        <div class="field"><label for="tips-role">Job title</label><input type="text" id="tips-role" placeholder="Enter a job role (e.g., 'Software Engineer', 'Marketing Manager')" class="flex-1 bg-neutral-700 border border-neutral-600 rounded-lg px-4 py-3 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500"></div> <!-- UPDATED -->
                         <button type="submit" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold px-6 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors">Get Tips</button> <!-- UPDATED -->
                     </form>
                     <div id="tips-loading" class="text-neutral-400 mt-6 hidden">Generating tips...</div> <!-- UPDATED -->
@@ -309,7 +255,7 @@
             <!-- AI Chatbot View -->
             <div id="chatbot-view" class="tool-view h-full flex flex-col">
                 <!-- NEW: Back Button -->
-                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Back to Dashboard</button> <!-- UPDATED -->
+                <button data-tool="dashboard" class="nav-button text-orange-400 hover:text-orange-300 font-semibold mb-6">&larr; Workspace</button> <!-- UPDATED -->
                 <h1 class="text-3xl font-bold mb-6">AI Chatbot</h1>
                 
                 <!-- This is the chat UI, UPDATED to remove extra height classes -->
@@ -457,7 +403,7 @@
             if (user) {
                 currentUser = user;
                 userId = user.uid; // Get the unique User ID
-                userInfo.textContent = `Logged in as: ${user.email}`;
+                userInfo.textContent = `${user.email}`;
                 showView('main-app-view');
                 showTool('dashboard-view'); 
                 setupJobTrackerListener(); // NEW: Start listening for jobs
@@ -476,6 +422,9 @@
             const signupForm = document.getElementById('signup-form');
 
             tabLogin.addEventListener('click', () => {
+                document.getElementById('auth-title').textContent = 'Welcome back.';
+                tabLogin.setAttribute('aria-pressed','true');
+                tabSignup.setAttribute('aria-pressed','false');
                 tabLogin.classList.add('text-orange-400', 'border-orange-400'); // UPDATED
                 tabLogin.classList.remove('text-neutral-500'); // UPDATED
                 tabSignup.classList.add('text-neutral-500'); // UPDATED
@@ -486,6 +435,9 @@
             });
 
             tabSignup.addEventListener('click', () => {
+                document.getElementById('auth-title').textContent = 'Create an account.';
+                tabLogin.setAttribute('aria-pressed','false');
+                tabSignup.setAttribute('aria-pressed','true');
                 tabSignup.classList.add('text-orange-400', 'border-orange-400'); // UPDATED
                 tabSignup.classList.remove('text-neutral-500'); // UPDATED
                 tabLogin.classList.add('text-neutral-500'); // UPDATED
