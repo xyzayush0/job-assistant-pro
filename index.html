@@ -287,6 +287,7 @@
       <div style="display:flex;justify-content:flex-end;gap:1rem;margin-top:1rem"><button value="cancel">Cancel</button><button value="save">Connect</button></div></form>
     </dialog>
     <script type="module">
+        import {streamChat} from "./groq.mjs";
         // --- 1. CONFIGURATION ---
 
         // Gemini credentials are held by the local Python server.
@@ -561,20 +562,26 @@
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        let sessionKey = '';
+        const keys = new Map();
         let pendingKey;
-        async function getKey() {
-            if (sessionKey) return sessionKey;
+        async function getKey(provider) {
+            if (keys.has(provider)) return keys.get(provider);
+            if (pendingKey) throw new Error('Finish the open key prompt and try again.');
             if (!pendingKey) {
                 const dialog = document.getElementById('key-dialog');
                 const input = document.getElementById('session-key');
+                dialog.querySelector('strong').textContent = 'Connect ' + provider;
+                dialog.querySelector('p').textContent = provider === 'Groq'
+                    ? 'Use your Groq Free Plan API key for writing and chat. Your input is sent to Groq. The key stays in this tab until reload.'
+                    : 'Use your Gemini API key for company research with Google Search. Your input is sent to Google. The key stays in this tab until reload.';
+                input.setAttribute('aria-label', provider + ' API key');
                 pendingKey = new Promise((resolve, reject) => {
                     dialog.addEventListener('close', () => {
-                        sessionKey = dialog.returnValue === 'save' ? input.value.trim() : '';
+                        const sessionKey = dialog.returnValue === 'save' ? input.value.trim() : '';
                         input.value = '';
                         pendingKey = null;
-                        if (sessionKey) resolve(sessionKey);
-                        else reject(new Error('A Gemini API key is required for AI tools.'));
+                        if (sessionKey) { keys.set(provider, sessionKey); resolve(sessionKey); }
+                        else reject(new Error(provider + ' API key required.'));
                     }, {once: true});
                 });
                 dialog.returnValue = '';
@@ -583,14 +590,22 @@
             }
             return pendingKey;
         }
+        async function generateWithGroq(messages, onText) {
+            const key = await getKey('Groq');
+            try { return await streamChat(key, messages, onText); }
+            catch (error) {
+                if ([401, 403].includes(error.status)) keys.delete('Groq');
+                throw error;
+            }
+        }
         async function fetchWithRetry(url, options) {
             let delay = INITIAL_BACKOFF_MS;
             for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-                const key = await getKey();
+                const key = await getKey('Gemini');
                 const response = await fetch(url, {...options, headers: {...options.headers, 'x-goog-api-key': key}});
                 if (response.ok) return response;
                 const body = await response.json().catch(() => ({}));
-                if ([400, 401, 403].includes(response.status)) sessionKey = '';
+                if ([400, 401, 403].includes(response.status)) keys.delete('Gemini');
                 const message = body.error?.message || `HTTP error ${response.status}`;
                 if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES && !message.includes('key is missing')) {
                     await sleep(delay);
@@ -692,7 +707,9 @@
             `; // Use new variable name
             
             try {
-                const response = await callToolAPI(userPrompt, systemPrompt);
+                const response = await generateWithGroq([
+                    {role: 'system', content: systemPrompt}, {role: 'user', content: userPrompt}
+                ], text => { cvResults.textContent = text; });
                 cvResults.innerHTML = formatResult(response);
             } catch (error) {
                 cvResults.textContent = error.message; // UPDATED
@@ -729,7 +746,9 @@
             `; // Use new variable name
             
             try {
-                const response = await callToolAPI(userPrompt, systemPrompt);
+                const response = await generateWithGroq([
+                    {role: 'system', content: systemPrompt}, {role: 'user', content: userPrompt}
+                ], text => { clResults.textContent = text; });
                 clResults.innerHTML = formatResult(response);
             } catch (error) {
                 clResults.textContent = error.message;
@@ -766,7 +785,9 @@
             `;
 
             try {
-                const response = await callToolAPI(userPrompt, systemPrompt);
+                const response = await generateWithGroq([
+                    {role: 'system', content: systemPrompt}, {role: 'user', content: userPrompt}
+                ], text => { liResults.textContent = text; });
                 liResults.innerHTML = formatResult(response);
             } catch (error) {
                 liResults.textContent = error.message;
@@ -826,7 +847,9 @@
             const userPrompt = `Job role: ${role}`;
 
             try {
-                const response = await callToolAPI(userPrompt, systemPrompt);
+                const response = await generateWithGroq([
+                    {role: 'system', content: systemPrompt}, {role: 'user', content: userPrompt}
+                ], text => { tipsResults.textContent = text; });
                 tipsResults.innerHTML = formatResult(response);
             } catch (error) {
                 tipsResults.textContent = error.message; // UPDATED
@@ -1036,7 +1059,9 @@
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const prompt = chatPromptInput.value.trim();
-            if (!prompt) return;
+            const send = chatForm.querySelector('button[type=submit]');
+            if (!prompt || send.disabled) return;
+            send.disabled = true;
 
             addChatMessageToUI("You", prompt);
             chatPromptInput.value = "";
@@ -1046,46 +1071,27 @@
             scrollChatToBottom();
 
             try {
-                const response = await callChatbotAPI();
-                addChatMessageToUI("Assistant", response);
+                const messages = [{role: 'system', content: chatConversationHistory[0].parts[0].text},
+                    ...chatConversationHistory.slice(2).slice(-9).map(turn => ({
+                        role: turn.role === 'model' ? 'assistant' : 'user', content: turn.parts[0].text
+                    }))];
+                let bubble;
+                const response = await generateWithGroq(messages, text => {
+                    bubble ??= addChatMessageToUI('Assistant', '');
+                    bubble.textContent = text;
+                    scrollChatToBottom();
+                });
+                bubble.innerHTML = formatResult(response);
                 chatConversationHistory.push({ role: "model", parts: [{ text: response }] });
             } catch (error) {
                 addChatMessageToUI("Assistant", `Error: ${error.message}`, true);
             } finally {
+                send.disabled = false;
                 chatLoadingSpinner.style.display = 'none';
                 scrollChatToBottom();
             }
         });
 
-        /** Specific API caller for the multi-turn chatbot */
-        async function callChatbotAPI() {
-            const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
-            // Ensure history doesn't grow too large (simple example, adjust as needed)
-             const historyToSend = chatConversationHistory.slice(-10); // Keep last 10 turns (5 user, 5 model + initial system/welcome)
-             if (historyToSend.length > 2 && historyToSend[0].role !== 'user' && historyToSend[0].parts[0].text.includes("You are a helpful")) {
-                // Ensure system prompt is always first if slicing removed it
-                historyToSend.unshift(chatConversationHistory[0]);
-             }
-             const payload = { contents: historyToSend };
-
-            const fetchOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            };
-            const response = await fetchWithRetry(apiUrl, fetchOptions);
-
-            const result = await response.json();
-            if (!result.candidates || !result.candidates[0].content) {
-                 if (result.promptFeedback?.blockReason) {
-                    // Add the blocked message to history so user sees it
-                    throw new Error(`Chat blocked due to: ${result.promptFeedback.blockReason}. Please modify your prompt.`);
-                }
-                 throw new Error("Invalid response structure from API.");
-            }
-            return result.candidates[0].content.parts.map(p => p.text).join(" ");
-        }
-        
         /** Adds a message to the chatbot's UI */
         function addChatMessageToUI(sender, text, isError = false) {
             const messageDiv = document.createElement('div');
@@ -1108,6 +1114,7 @@
             `;
             chatHistoryUI.appendChild(messageDiv);
             scrollChatToBottom();
+            return messageDiv.querySelector('p');
         }
 
         /** Scrolls the chatbot's history to the bottom */
